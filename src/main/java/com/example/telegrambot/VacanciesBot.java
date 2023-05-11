@@ -31,6 +31,8 @@ public class VacanciesBot extends TelegramLongPollingBot {
                     showJuniorVacancies(update);
                 } else if ("showMiddleVacancies".equals(callbackData)) {
                     showMiddleVacancies(update);
+                } else if ("showSeniorVacancies".equals(callbackData)) {
+                    showSeniorVacancies(update);
                 } else if (callbackData.startsWith("vacancyId=")) {
                     // vacancyId=1 => (vacancyId) + (1) => (1)
                     String id = callbackData.split("=")[1];
@@ -101,6 +103,36 @@ public class VacanciesBot extends TelegramLongPollingBot {
         InlineKeyboardButton googleVacancy = new InlineKeyboardButton();
         googleVacancy.setText("Middle Java developer at Google");
         googleVacancy.setCallbackData("vacancyId=4");
+        row.add(googleVacancy);
+
+        // returning actual keyboard
+        InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
+        keyboard.setKeyboard(List.of(row));
+        return keyboard;
+    }
+
+    private void showSeniorVacancies(Update update) throws TelegramApiException {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setText("Please choose vacancy:");
+        // get chatId of the user who clicked the button
+        sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
+        // add new menu for junior vacancies
+        sendMessage.setReplyMarkup(getSeniorVacanciesMenu());
+        // method call
+        execute(sendMessage);
+    }
+
+    private ReplyKeyboard getSeniorVacanciesMenu() {
+        // buttons
+        List<InlineKeyboardButton> row = new ArrayList<>();
+        InlineKeyboardButton maVacancy = new InlineKeyboardButton();
+        maVacancy.setText("Senior Java developer at MA");
+        maVacancy.setCallbackData("vacancyId=5");
+        row.add(maVacancy);
+
+        InlineKeyboardButton googleVacancy = new InlineKeyboardButton();
+        googleVacancy.setText("Senior Java developer at Google");
+        googleVacancy.setCallbackData("vacancyId=6");
         row.add(googleVacancy);
 
         // returning actual keyboard
