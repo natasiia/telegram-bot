@@ -29,11 +29,22 @@ public class VacanciesBot extends TelegramLongPollingBot {
                 // compare received callback data
                 if ("showJuniorVacancies".equals(callbackData)) {
                     showJuniorVacancies(update);
+                } else if (callbackData.startsWith("vacancyId=")) {
+                    // vacancyId=1 => (vacancyId) + (1) => (1)
+                    String id = callbackData.split("=")[1];
+                    showVacancyDescription(id, update);
                 }
             }
         } catch (Exception e) {
             throw new RuntimeException("Can't send message to user!", e);
         }
+    }
+
+    private void showVacancyDescription(String id, Update update) throws TelegramApiException {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
+        sendMessage.setText("Vacancy description for vacancy with id = " + id);
+        execute(sendMessage);
     }
 
     private void showJuniorVacancies(Update update) throws TelegramApiException {
