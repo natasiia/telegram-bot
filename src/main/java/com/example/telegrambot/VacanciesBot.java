@@ -20,6 +20,53 @@ public class VacanciesBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
+        try {
+            if (update.getMessage() != null) {
+                handleStartCommand(update);
+            }
+            if (update.getCallbackQuery() != null) {
+                String callbackData = update.getCallbackQuery().getData();
+                // compare received callback data
+                if ("showJuniorVacancies".equals(callbackData)) {
+                    showJuniorVacancies(update);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Can't send message to user!", e);
+        }
+    }
+
+    private void showJuniorVacancies(Update update) throws TelegramApiException {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setText("Please choose vacancy:");
+        // get chatId of the user who clicked the button
+        sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
+        // add new menu for junior vacancies
+        sendMessage.setReplyMarkup(getJuniorVacanciesMenu());
+        // method call
+        execute(sendMessage);
+    }
+
+    private ReplyKeyboard getJuniorVacanciesMenu() {
+        // buttons
+        List<InlineKeyboardButton> row = new ArrayList<>();
+        InlineKeyboardButton maVacancy = new InlineKeyboardButton();
+        maVacancy.setText("Junior Java developer at MA");
+        maVacancy.setCallbackData("vacancyId=1");
+        row.add(maVacancy);
+
+        InlineKeyboardButton googleVacancy = new InlineKeyboardButton();
+        googleVacancy.setText("Junior Java developer at Google");
+        googleVacancy.setCallbackData("vacancyId=2");
+        row.add(googleVacancy);
+
+        // returning actual keyboard
+        InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
+        keyboard.setKeyboard(List.of(row));
+        return keyboard;
+    }
+
+    private void handleStartCommand(Update update) {
         // main logic for modifying messages (events from Telegram)
         String text = update.getMessage().getText();
         System.out.println("Received text is " + text);
