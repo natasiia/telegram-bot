@@ -29,6 +29,8 @@ public class VacanciesBot extends TelegramLongPollingBot {
                 // compare received callback data
                 if ("showJuniorVacancies".equals(callbackData)) {
                     showJuniorVacancies(update);
+                } else if ("showMiddleVacancies".equals(callbackData)) {
+                    showMiddleVacancies(update);
                 } else if (callbackData.startsWith("vacancyId=")) {
                     // vacancyId=1 => (vacancyId) + (1) => (1)
                     String id = callbackData.split("=")[1];
@@ -77,6 +79,36 @@ public class VacanciesBot extends TelegramLongPollingBot {
         return keyboard;
     }
 
+    private void showMiddleVacancies(Update update) throws TelegramApiException {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setText("Please choose vacancy:");
+        // get chatId of the user who clicked the button
+        sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
+        // add new menu for junior vacancies
+        sendMessage.setReplyMarkup(getMiddleVacanciesMenu());
+        // method call
+        execute(sendMessage);
+    }
+
+    private ReplyKeyboard getMiddleVacanciesMenu() {
+        // buttons
+        List<InlineKeyboardButton> row = new ArrayList<>();
+        InlineKeyboardButton maVacancy = new InlineKeyboardButton();
+        maVacancy.setText("Middle Java developer at MA");
+        maVacancy.setCallbackData("vacancyId=3");
+        row.add(maVacancy);
+
+        InlineKeyboardButton googleVacancy = new InlineKeyboardButton();
+        googleVacancy.setText("Middle Java developer at Google");
+        googleVacancy.setCallbackData("vacancyId=4");
+        row.add(googleVacancy);
+
+        // returning actual keyboard
+        InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
+        keyboard.setKeyboard(List.of(row));
+        return keyboard;
+    }
+
     private void handleStartCommand(Update update) {
         // main logic for modifying messages (events from Telegram)
         String text = update.getMessage().getText();
@@ -116,6 +148,7 @@ public class VacanciesBot extends TelegramLongPollingBot {
         // message in response to user's click
         senior.setCallbackData("showSeniorVacancies");
         row.add(senior);
+
         // returning actual keyboard
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
         keyboard.setKeyboard(List.of(row));
