@@ -5,6 +5,7 @@ import com.example.telegrambot.service.VacancyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -85,18 +86,45 @@ public class VacanciesBot extends TelegramLongPollingBot {
     private void showVacancyDescription(String id, Update update) throws TelegramApiException {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
-        VacancyDto vacancy = vacancyService.get(id);
-        String shortDescription = vacancy.getShortDescription();
-        String longDescription = vacancy.getLongDescription();
-        String company = vacancy.getCompany();
-        String salary = vacancy.getSalary();
-        String link = vacancy.getLink();
-        String allInfo = shortDescription + "\n" + company+ "\n"  + salary+ "\n"  + longDescription + "\n" + link;
-
+        VacancyDto vacancyDto = vacancyService.get(id);
+        String allInfo = """
+            *Title: * %s
+            *Short Description: * %s
+            *Company: * %s
+            *Salary: * %s
+            *Long Description: * %s
+            *Link: * [%s](%s)
+            """.formatted(
+                escapeMarkdownReservedChars(vacancyDto.getTitle()),
+                escapeMarkdownReservedChars(vacancyDto.getShortDescription()),
+                escapeMarkdownReservedChars(vacancyDto.getCompany()),
+                vacancyDto.getSalary().isBlank() ? "Not specified" : escapeMarkdownReservedChars(vacancyDto.getSalary()),
+                escapeMarkdownReservedChars(vacancyDto.getLongDescription()),
+                "Click here for more details",
+                escapeMarkdownReservedChars(vacancyDto.getLink())
+        );
         sendMessage.setText(allInfo);
+        sendMessage.setParseMode(ParseMode.MARKDOWNV2);
         // "back to" button
         sendMessage.setReplyMarkup(getBackToVacanciesMenu());
         execute(sendMessage);
+    }
+
+    private String escapeMarkdownReservedChars (String text) {
+        return text.replace("-", "\\-")
+                .replace("_", "\\_")
+                .replace("*", "\\*")
+                .replace("[", "\\[")
+                .replace("]", "\\]")
+                .replace("(", "\\(")
+                .replace(")", "\\)")
+                .replace("~", "\\~")
+                .replace("`", "\\`")
+                .replace(">", "\\>")
+                .replace("#", "\\#")
+                .replace("+", "\\+")
+                .replace(".", "\\.")
+                .replace("!", "\\!");
     }
 
     private ReplyKeyboard getBackToVacanciesMenu() {
