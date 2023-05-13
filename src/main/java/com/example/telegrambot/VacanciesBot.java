@@ -13,12 +13,17 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 
 @Component
 public class VacanciesBot extends TelegramLongPollingBot {
     @Autowired
     private VacancyService vacancyService;
+
+    // key in the hashmap => Long id, value => last vacancy level
+    private final Map<Long, String> lastShownVacancyLevel = new HashMap<>();
 
     public VacanciesBot() {
         super("botToken here");
@@ -44,13 +49,27 @@ public class VacanciesBot extends TelegramLongPollingBot {
                     String id = callbackData.split("=")[1];
                     showVacancyDescription(id, update);
                 } else if ("backToVacancies".equals(callbackData)) {
-                    // add handler
+                    handleBackToVacanciesCommand(update);
                 } else if ("backToStartMenu".equals(callbackData)) {
                     // add handler
                 }
             }
         } catch (Exception e) {
             throw new RuntimeException("Can't send message to user!", e);
+        }
+    }
+
+    private void handleBackToVacanciesCommand(Update update) throws TelegramApiException {
+        // get id of the user
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        String level = lastShownVacancyLevel.get(chatId);
+
+        if ("junior".equals(level)) {
+            showJuniorVacancies(update);
+        } else if ("middle".equals(level)) {
+            showMiddleVacancies(update);
+        } else if ("senior".equals(level)) {
+            showSeniorVacancies(update);
         }
     }
 
@@ -84,11 +103,14 @@ public class VacanciesBot extends TelegramLongPollingBot {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setText("Please choose vacancy:");
         // get chatId of the user who clicked the button
-        sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        sendMessage.setChatId(chatId);
         // add new menu for junior vacancies
         sendMessage.setReplyMarkup(getJuniorVacanciesMenu());
         // method call
         execute(sendMessage);
+
+        lastShownVacancyLevel.put(chatId, "junior");
     }
 
     private ReplyKeyboard getJuniorVacanciesMenu() {
@@ -114,11 +136,14 @@ public class VacanciesBot extends TelegramLongPollingBot {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setText("Please choose vacancy:");
         // get chatId of the user who clicked the button
-        sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        sendMessage.setChatId(chatId);
         // add new menu for junior vacancies
         sendMessage.setReplyMarkup(getMiddleVacanciesMenu());
         // method call
         execute(sendMessage);
+
+        lastShownVacancyLevel.put(chatId, "middle");
     }
 
     private ReplyKeyboard getMiddleVacanciesMenu() {
@@ -144,11 +169,14 @@ public class VacanciesBot extends TelegramLongPollingBot {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setText("Please choose vacancy:");
         // get chatId of the user who clicked the button
-        sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        sendMessage.setChatId(chatId);
         // add new menu for junior vacancies
         sendMessage.setReplyMarkup(getSeniorVacanciesMenu());
         // method call
         execute(sendMessage);
+
+        lastShownVacancyLevel.put(chatId, "senior");
     }
 
     private ReplyKeyboard getSeniorVacanciesMenu() {
