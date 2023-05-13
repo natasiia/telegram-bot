@@ -43,6 +43,10 @@ public class VacanciesBot extends TelegramLongPollingBot {
                     // vacancyId=1 => (vacancyId) + (1) => (1)
                     String id = callbackData.split("=")[1];
                     showVacancyDescription(id, update);
+                } else if ("backToVacancies".equals(callbackData)) {
+                    // add handler
+                } else if ("backToStartMenu".equals(callbackData)) {
+                    // add handler
                 }
             }
         } catch (Exception e) {
@@ -56,7 +60,24 @@ public class VacanciesBot extends TelegramLongPollingBot {
         VacancyDto vacancy = vacancyService.get(id);
         String description = vacancy.getShortDescription();
         sendMessage.setText(description);
+        // "back to" button
+        sendMessage.setReplyMarkup(getBackToVacanciesMenu());
         execute(sendMessage);
+    }
+
+    private ReplyKeyboard getBackToVacanciesMenu() {
+        List<InlineKeyboardButton> row = new ArrayList<>();
+        InlineKeyboardButton backToVacanciesButton = new InlineKeyboardButton();
+        backToVacanciesButton.setText("Back to vacancies");
+        backToVacanciesButton.setCallbackData("backToVacancies");
+        row.add(backToVacanciesButton);
+
+        InlineKeyboardButton backToStartMenuButton = new InlineKeyboardButton();
+        backToStartMenuButton.setText("Back to start menu");
+        backToStartMenuButton.setCallbackData("backToStartMenu");
+        row.add(backToStartMenuButton);
+
+        return new InlineKeyboardMarkup(List.of(row));
     }
 
     private void showJuniorVacancies(Update update) throws TelegramApiException {
