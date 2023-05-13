@@ -51,7 +51,7 @@ public class VacanciesBot extends TelegramLongPollingBot {
                 } else if ("backToVacancies".equals(callbackData)) {
                     handleBackToVacanciesCommand(update);
                 } else if ("backToStartMenu".equals(callbackData)) {
-                    // add handler
+                    handleBackToStartCommand(update);
                 }
             }
         } catch (Exception e) {
@@ -71,6 +71,15 @@ public class VacanciesBot extends TelegramLongPollingBot {
         } else if ("senior".equals(level)) {
             showSeniorVacancies(update);
         }
+    }
+
+    private void handleBackToStartCommand(Update update) throws TelegramApiException {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setText("Choose title:");
+        sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
+        // reuse getStartMenu()
+        sendMessage.setReplyMarkup(getStartMenu());
+        execute(sendMessage);
     }
 
     private void showVacancyDescription(String id, Update update) throws TelegramApiException {
