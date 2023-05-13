@@ -86,8 +86,14 @@ public class VacanciesBot extends TelegramLongPollingBot {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
         VacancyDto vacancy = vacancyService.get(id);
-        String description = vacancy.getShortDescription();
-        sendMessage.setText(description);
+        String shortDescription = vacancy.getShortDescription();
+        String longDescription = vacancy.getLongDescription();
+        String company = vacancy.getCompany();
+        String salary = vacancy.getSalary();
+        String link = vacancy.getLink();
+        String allInfo = shortDescription + "\n" + company+ "\n"  + salary+ "\n"  + longDescription + "\n" + link;
+
+        sendMessage.setText(allInfo);
         // "back to" button
         sendMessage.setReplyMarkup(getBackToVacanciesMenu());
         execute(sendMessage);
@@ -158,15 +164,15 @@ public class VacanciesBot extends TelegramLongPollingBot {
     private ReplyKeyboard getMiddleVacanciesMenu() {
         // buttons
         List<InlineKeyboardButton> row = new ArrayList<>();
-        InlineKeyboardButton maVacancy = new InlineKeyboardButton();
-        maVacancy.setText("Middle Java developer at MA");
-        maVacancy.setCallbackData("vacancyId=3");
-        row.add(maVacancy);
-
-        InlineKeyboardButton googleVacancy = new InlineKeyboardButton();
-        googleVacancy.setText("Middle Java developer at Google");
-        googleVacancy.setCallbackData("vacancyId=4");
-        row.add(googleVacancy);
+        // receive list of only middle vacancies
+        List<VacancyDto> vacancies = vacancyService.getMiddleVacancies();
+        // for every vacancy generate buttons
+        for (VacancyDto vacancy: vacancies) {
+            InlineKeyboardButton vacancyButton = new InlineKeyboardButton();
+            vacancyButton.setText(vacancy.getTitle());
+            vacancyButton.setCallbackData("vacancyId=" + vacancy.getId());
+            row.add(vacancyButton);
+        }
 
         // returning actual keyboard
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
@@ -191,15 +197,15 @@ public class VacanciesBot extends TelegramLongPollingBot {
     private ReplyKeyboard getSeniorVacanciesMenu() {
         // buttons
         List<InlineKeyboardButton> row = new ArrayList<>();
-        InlineKeyboardButton maVacancy = new InlineKeyboardButton();
-        maVacancy.setText("Senior Java developer at MA");
-        maVacancy.setCallbackData("vacancyId=5");
-        row.add(maVacancy);
-
-        InlineKeyboardButton googleVacancy = new InlineKeyboardButton();
-        googleVacancy.setText("Senior Java developer at Google");
-        googleVacancy.setCallbackData("vacancyId=6");
-        row.add(googleVacancy);
+        // receive list of only senior vacancies
+        List<VacancyDto> vacancies = vacancyService.getSeniorVacancies();
+        // for every vacancy generate buttons
+        for (VacancyDto vacancy: vacancies) {
+            InlineKeyboardButton vacancyButton = new InlineKeyboardButton();
+            vacancyButton.setText(vacancy.getTitle());
+            vacancyButton.setCallbackData("vacancyId=" + vacancy.getId());
+            row.add(vacancyButton);
+        }
 
         // returning actual keyboard
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
