@@ -1,5 +1,8 @@
 package com.example.telegrambot;
 
+import com.example.telegrambot.dto.VacancyDto;
+import com.example.telegrambot.service.VacancyService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -14,6 +17,9 @@ import java.util.List;
 
 @Component
 public class VacanciesBot extends TelegramLongPollingBot {
+    @Autowired
+    private VacancyService vacancyService;
+
     public VacanciesBot() {
         super("botToken here");
     }
@@ -47,7 +53,9 @@ public class VacanciesBot extends TelegramLongPollingBot {
     private void showVacancyDescription(String id, Update update) throws TelegramApiException {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
-        sendMessage.setText("Vacancy description for vacancy with id = " + id);
+        VacancyDto vacancy = vacancyService.get(id);
+        String description = vacancy.getShortDescription();
+        sendMessage.setText(description);
         execute(sendMessage);
     }
 
@@ -65,15 +73,15 @@ public class VacanciesBot extends TelegramLongPollingBot {
     private ReplyKeyboard getJuniorVacanciesMenu() {
         // buttons
         List<InlineKeyboardButton> row = new ArrayList<>();
-        InlineKeyboardButton maVacancy = new InlineKeyboardButton();
-        maVacancy.setText("Junior Java developer at MA");
-        maVacancy.setCallbackData("vacancyId=1");
-        row.add(maVacancy);
-
-        InlineKeyboardButton googleVacancy = new InlineKeyboardButton();
-        googleVacancy.setText("Junior Java developer at Google");
-        googleVacancy.setCallbackData("vacancyId=2");
-        row.add(googleVacancy);
+        // receive list of only junior vacancies
+        List<VacancyDto> vacancies = vacancyService.getJuniorVacancies();
+        // for every vacancy generate buttons
+        for (VacancyDto vacancy: vacancies) {
+            InlineKeyboardButton vacancyButton = new InlineKeyboardButton();
+            vacancyButton.setText(vacancy.getTitle());
+            vacancyButton.setCallbackData("vacancyId=" + vacancy.getId());
+            row.add(vacancyButton);
+        }
 
         // returning actual keyboard
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
